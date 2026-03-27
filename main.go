@@ -1,8 +1,8 @@
 package main
 
 import (
-	"log"
-	"os"
+	"net/http"
+	"sync"
 
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
@@ -13,27 +13,22 @@ import (
 	"product-management-backend/routes"
 )
 
-func main() {
-	_ = godotenv.Load()
-	if err := db.ConnectMongo(); err != nil {
-		log.Fatal("MongoDB connection failed:", err)
-	}
+var (
+	echoOnce sync.Once
+	echoHandler http.Handler
+)
 
-	e := echo.New()
-	e.Use(middleware.Logger())
-	e.Use(middleware.Recover())
-
-	// Register API routes
-	// Swagger docs endpoint
-	e.GET("/swagger/*", echoSwagger.WrapHandler)
-
-	// Register all API routes
-	routes.RegisterRoutes(e)
-
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8080"
-	}
-	log.Println("Server running on port", port)
-	e.Logger.Fatal(e.Start(":" + port))
+// Handler is the Vercel serverless entrypoint
+func Handler(w http.ResponseWriter, r *http.Request) {
+	echoOnce.Do(func() {
+		_ = godotenv.Load()
+		_ = db.ConnectMongo()
+		e := echo.New()
+		e.Use(middleware.Logger())
+		e.Use(middleware.Recover())
+		e.GET("/swagger/*", echoSwagger.WrapHandler)
+		routes.RegisterRoutes(e)
+		echoHandler = e.Server.Handler
+	})
+	echoHandler.ServeHTTP(w, r)
 }
