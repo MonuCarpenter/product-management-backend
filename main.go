@@ -1,4 +1,4 @@
-package main
+package handler
 
 import (
 	"net/http"
@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	echoOnce    sync.Once
+	echoOnce sync.Once
 	echoHandler http.Handler
 )
 
