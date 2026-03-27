@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	echoOnce sync.Once
+	echoOnce    sync.Once
 	echoHandler http.Handler
 )
 
