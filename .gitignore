@@ -1,0 +1,41 @@
+# Binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Output of the go coverage tool, specifically when used with LiteIDE
+*.cov
+
+# Dependency directories (remove the comment below to include it)
+# vendor/
+
+# IDE/editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*.DS_Store
+
+# Environment files
+.env
+
+# Swagger docs
+/docs/swagger.json
+/docs/swagger.yaml
+
+# Logs
+*.log
+
+# Build
+/dist/
+
+# OS generated files
+Thumbs.db
+.DS_Store
+
+# Node modules (if any)
+node_modules/
