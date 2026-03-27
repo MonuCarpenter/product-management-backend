@@ -7,14 +7,14 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"github.com/swaggo/echo-swagger"
+	echoSwagger "github.com/swaggo/echo-swagger"
 
 	"product-management-backend/db"
 	"product-management-backend/routes"
 )
 
 var (
-	echoOnce sync.Once
+	echoOnce    sync.Once
 	echoHandler http.Handler
 )
 
