@@ -47,6 +47,40 @@ func Login(c echo.Context) error {
 	return c.JSON(http.StatusOK, map[string]string{"token": token})
 }
 
+// GetUserByToken returns the user info for the authenticated user (by token)
+func GetUserByToken(c echo.Context) error {
+	userID, ok := c.Get("userId").(string)
+	if !ok || userID == "" {
+		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "invalid token"})
+	}
+	objID, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid user id"})
+	}
+	col := db.Client.Database(getDBName()).Collection("users")
+	var user models.User
+	err = col.FindOne(context.Background(), bson.M{"_id": objID, "deletedAt": bson.M{"$exists": false}}).Decode(&user)
+	if err != nil {
+		return c.JSON(http.StatusNotFound, map[string]string{"error": "user not found"})
+	}
+	return c.JSON(http.StatusOK, user)
+}
+
+// CreateProduct creates a new product
+func CreateProduct(c echo.Context) error {
+	col := db.Client.Database(getDBName()).Collection("products")
+	var req models.Product
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request"})
+	}
+	req.ID = primitive.NewObjectID()
+	req.DeletedAt = nil
+	_, err := col.InsertOne(context.Background(), req)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "db error"})
+	}
+	return c.JSON(http.StatusOK, map[string]string{"message": "product created", "id": req.ID.Hex()})
+}
 func RegisterSalesman(c echo.Context) error {
 	var req struct {
 		Name     string `json:"name"`
@@ -63,11 +97,13 @@ func RegisterSalesman(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "password error"})
 	}
 	user := models.User{
-		Name:     req.Name,
-		Email:    req.Email,
-		Phone:    req.Phone,
-		Password: string(hash),
-		Role:     models.RoleSalesman,
+		ID:        primitive.NewObjectID(),
+		Name:      req.Name,
+		Email:     req.Email,
+		Phone:     req.Phone,
+		Password:  string(hash),
+		Role:      models.RoleSalesman,
+		DeletedAt: nil,
 	}
 	_, err = col.InsertOne(context.Background(), user)
 	if err != nil {
@@ -226,6 +262,7 @@ func AddProduct(c echo.Context) error {
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request"})
 	}
+	req.ID = primitive.NewObjectID()
 	req.DeletedAt = nil
 	_, err := col.InsertOne(context.Background(), req)
 	if err != nil {
@@ -242,6 +279,7 @@ func AddBulkProducts(c echo.Context) error {
 	}
 	var docs []interface{}
 	for i := range req {
+		req[i].ID = primitive.NewObjectID()
 		req[i].DeletedAt = nil
 		docs = append(docs, req[i])
 	}

@@ -8,6 +8,11 @@ import (
 )
 
 func RegisterRoutes(e *echo.Echo) {
+	// Get user by token
+	e.GET("/api/user/me", controllers.GetUserByToken, middleware.JWTMiddleware)
+
+	// Get product by id (already exists as /api/products/:id)
+	
 	// Auth
 	e.POST("/api/auth/login", controllers.Login)
 	e.POST("/api/auth/register", controllers.RegisterSalesman, middleware.JWTMiddleware, middleware.RoleMiddleware("admin"))
@@ -18,6 +23,8 @@ func RegisterRoutes(e *echo.Echo) {
 	e.DELETE("/api/users/:id", controllers.DeleteUser, middleware.JWTMiddleware, middleware.RoleMiddleware("admin"))
 
 	// Products
+	// Create product (admin only)
+	e.POST("/api/products/create", controllers.CreateProduct, middleware.JWTMiddleware, middleware.RoleMiddleware("admin"))
 	e.GET("/api/products", controllers.GetProducts, middleware.JWTMiddleware)
 	e.GET("/api/products/:id", controllers.GetProductByID, middleware.JWTMiddleware)
 	e.POST("/api/products", controllers.AddProduct, middleware.JWTMiddleware, middleware.RoleMiddleware("admin"))

@@ -6,7 +6,10 @@ import (
 	"log"
 	"os"
 
+	"product-management-backend/models"
+
 	"github.com/joho/godotenv"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 	"golang.org/x/crypto/bcrypt"
@@ -38,7 +41,7 @@ func main() {
 	adminEmail := "admin@pms.com"
 	adminPassword := "pms@admin"
 
-	var existing map[string]interface{}
+	var existing models.User
 	err = usersCol.FindOne(ctx, map[string]interface{}{"email": adminEmail}).Decode(&existing)
 	if err == nil {
 		fmt.Println("Admin user already exists.")
@@ -48,12 +51,14 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	admin := map[string]interface{}{
-		"name":     "Admin",
-		"email":    adminEmail,
-		"phone":    "",
-		"password": string(hash),
-		"role":     "admin",
+	admin := models.User{
+		ID:        primitive.NewObjectID(),
+		Name:      "Admin",
+		Email:     adminEmail,
+		Phone:     "",
+		Password:  string(hash),
+		Role:      models.RoleAdmin,
+		DeletedAt: nil,
 	}
 	_, err = usersCol.InsertOne(ctx, admin)
 	if err != nil {
