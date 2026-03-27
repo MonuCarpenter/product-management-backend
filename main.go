@@ -27,6 +27,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 		e.Use(middleware.Logger())
 		e.Use(middleware.Recover())
 		e.GET("/swagger/*", echoSwagger.WrapHandler)
+		e.GET("/", echoSwagger.WrapHandler)
 		routes.RegisterRoutes(e)
 		echoHandler = e.Server.Handler
 	})
